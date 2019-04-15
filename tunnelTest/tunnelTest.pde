@@ -7,6 +7,8 @@ Thomas Sanchez Lengeling. http://codigogenerativo.com/
  Kinect Projector Toolkit created the calibration file
  */
 
+import javax.swing.JFrame;
+
 import KinectProjectorToolkit.*;
 
 import java.util.ArrayList;
@@ -17,9 +19,12 @@ KinectPV2 kinect;
 
 KinectProjectorToolkit kpt;
 
+PVector[] depthMap;
 
 void setup() {
-  size(512, 424, P3D);
+  //size(512, 424, P3D);
+  
+  fullScreen(P3D);
 
   kinect = new KinectPV2(this);
 
@@ -31,47 +36,25 @@ void setup() {
 
   kpt = new KinectProjectorToolkit(this, KinectPV2.WIDTHDepth, KinectPV2.HEIGHTDepth);
   kpt.loadCalibration("calibration.txt");
+
+  depthMap = new PVector[KinectPV2.WIDTHDepth*KinectPV2.HEIGHTDepth];
 }
 
 void draw() {
   background(0);
+  depthMap = depthMapRealWorld();
+  kpt.setDepthMapRealWorld(depthMapRealWorld()); 
 
-  kpt.setDepthMapRealWorld(getDepthValues()); 
-  
-  
+
 
   //image(kinect.getDepthMaskImage(), 0, 0);
 
 
-
+  drawSkeleton();
   fill(255, 0, 0);
   text(frameRate, 50, 50);
 }
 
-PVector [] getDepthValues() {
-  int skip = 1;
-  int w = KinectPV2.WIDTHDepth;
-  int h = KinectPV2.HEIGHTDepth;
-
-  PVector [] points = new PVector[w*h];
-
-  //raw Data int valeus from [0 - 4500]
-  int [] depth = kinect.getRawDepthData();
-
-  //values for [0 - 256] strip
-  //int [] rawData256 = kinect.getRawDepth256Data();
-
-  for (int x = 0; x < w; x += skip) {
-    for (int y = 0; y < h; y += skip) {
-      int offset = x + y * w;
-
-      // Convert kinect data to world xyz coordinate
-      int rawDepth = depth[offset];
-      points[offset] = depthToPointCloudPos(x, y, rawDepth);
-    }
-  }
-  return points;
-}
 
 void drawSkeleton() {
   //get the skeletons as an Arraylist of KSkeletons
@@ -99,18 +82,26 @@ void drawBody(KJoint[] joints) {
   //drawBone(joints, KinectPV2.JointType_Neck, KinectPV2.JointType_SpineShoulder);
   //drawBone(joints, KinectPV2.JointType_SpineShoulder, KinectPV2.JointType_SpineMid);
   //drawBone(joints, KinectPV2.JointType_SpineMid, KinectPV2.JointType_SpineBase);
-  drawJoint(joints, KinectPV2.JointType_Head);
-  
+ 
   //int jointType = KinectPV2.JointType_Head;
   int jointType = KinectPV2.JointType_SpineShoulder;
-  PVector headPoint = new PVector(joints[jointType].getX(), joints[jointType].getY(), joints[jointType].getZ());
-  PVector projectedPoint = kpt.convertKinectToProjector(headPoint);
-  
-  //noFill();
-  //stroke(255, 0, 0);
-  fill(255, 0, 0);
-  strokeWeight(6);
-  ellipse(projectedPoint.x, projectedPoint.y, 30, 30);
+  fill(0, 255, 255);
+  drawJoint(joints, jointType);
+
+  fill(255);
+  drawProjectedJoint(joints, jointType);
+}
+
+//draw a single joint
+void drawProjectedJoint(KJoint[] joints, int jointType) {
+  int w = KinectPV2.WIDTHDepth;
+  PVector pos = joints[jointType].getPosition();
+  int idx = w * (int) pos.y + (int) pos.x;
+  PVector testPointP = kpt.convertKinectToProjector(depthMap[idx]);
+  pushMatrix();
+  translate(testPointP.x, testPointP.y, testPointP.z);
+  ellipse(0, 0, 55, 55);
+  popMatrix();
 }
 
 //draw a single joint
@@ -121,6 +112,29 @@ void drawJoint(KJoint[] joints, int jointType) {
   popMatrix();
 }
 
+// all functions below used to generate depthMapRealWorld point cloud
+PVector[] depthMapRealWorld()
+{
+  int w = KinectPV2.WIDTHDepth;
+  int h = KinectPV2.HEIGHTDepth;
+
+  int[] depth = kinect.getRawDepthData();
+  int skip = 1;
+  for (int y = 0; y < h; y+=skip) {
+    for (int x = 0; x < w; x+=skip) {
+      int offset = x + y * w;
+      //calculate the x, y, z camera position based on the depth information
+      PVector point = depthToPointCloudPos(x, y, depth[offset]);
+      depthMap[w * y + x] = point;
+    }
+  }
+  return depthMap;
+}
+
+PVector getDepthMapAt(int x, int y) {
+  PVector dm = depthMap[KinectPV2.WIDTHDepth * y + x];
+  return new PVector(dm.x, dm.y, dm.z);
+}
 
 
 //calculte the xyz camera position based on the depth data

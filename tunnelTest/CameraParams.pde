@@ -1,3 +1,14 @@
+//==========================================================
+// set resolution of your projector image/second monitor
+// and name of your calibration file-to-be
+int pWidth = 1920;
+int pHeight = 1080; 
+String calibFilename = "calibration.txt";
+//==========================================================
+//==========================================================
+
+
+
 //camera information based on the Kinect v2 hardware
 static class CameraParams {
   static float cx = 254.878f;
