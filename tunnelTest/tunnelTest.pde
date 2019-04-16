@@ -83,8 +83,8 @@ void drawBody(KJoint[] joints) {
   //drawBone(joints, KinectPV2.JointType_SpineShoulder, KinectPV2.JointType_SpineMid);
   //drawBone(joints, KinectPV2.JointType_SpineMid, KinectPV2.JointType_SpineBase);
  
-  //int jointType = KinectPV2.JointType_Head;
-  int jointType = KinectPV2.JointType_SpineShoulder;
+  int jointType = KinectPV2.JointType_Head;
+  //int jointType = KinectPV2.JointType_SpineShoulder;
   fill(0, 255, 255);
   drawJoint(joints, jointType);
 
@@ -92,15 +92,33 @@ void drawBody(KJoint[] joints) {
   drawProjectedJoint(joints, jointType);
 }
 
+void displayDepthMap() {
+  //int skip = 50;
+  
+  //for (int x = 0;  x < pWidth; x += skip) {
+  //  for (int y = 0; y < pHeight; y += skip) {
+  //    fill(255);
+  //    ellipse(
+}
+
 //draw a single joint
 void drawProjectedJoint(KJoint[] joints, int jointType) {
   int w = KinectPV2.WIDTHDepth;
+  int h = KinectPV2.HEIGHTDepth;
   PVector pos = joints[jointType].getPosition();
-  int idx = w * (int) pos.y + (int) pos.x;
+  int idx = constrain(w * (int) pos.y + (int) pos.x, 0, w*h);
   PVector testPointP = kpt.convertKinectToProjector(depthMap[idx]);
+  println("pos " + pos);
+  println("testp " + testPointP);
   pushMatrix();
+  float z = depthMap[idx].z;
+  println("z " + z);
+  float diam = map(z, 0, 4500, 400, 100);
   translate(testPointP.x, testPointP.y, testPointP.z);
-  ellipse(0, 0, 55, 55);
+  noFill();
+  strokeWeight(4);
+  stroke(255);
+  ellipse(0, 0, diam, diam);
   popMatrix();
 }
 
@@ -140,7 +158,7 @@ PVector getDepthMapAt(int x, int y) {
 //calculte the xyz camera position based on the depth data
 PVector depthToPointCloudPos(int x, int y, float depthValue) {
   PVector point = new PVector();
-  point.z = (depthValue);// / (1.0f); // Convert from mm to meters
+  point.z = (depthValue)/ (1.0f); // Convert from mm to meters
   point.x = (x - CameraParams.cx) * point.z / CameraParams.fx;
   point.y = (y - CameraParams.cy) * point.z / CameraParams.fy;
   return point;
