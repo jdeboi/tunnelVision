@@ -21,6 +21,8 @@ KinectProjectorToolkit kpt;
 
 PVector[] depthMap;
 
+Person[] people;
+
 void setup() {
   //size(512, 424, P3D);
   
@@ -38,6 +40,11 @@ void setup() {
   kpt.loadCalibration("calibration.txt");
 
   depthMap = new PVector[KinectPV2.WIDTHDepth*KinectPV2.HEIGHTDepth];
+  
+  people = new Person[6];
+  for (int i = 0; i < people.length; i++) {
+    people[i] = new Person(i);
+  }
 }
 
 void draw() {
@@ -64,15 +71,8 @@ void drawSkeleton() {
   for (int i = 0; i < skeletonArray.size(); i++) {
     KSkeleton skeleton = (KSkeleton) skeletonArray.get(i);
     //if the skeleton is being tracked compute the skleton joints
-    if (skeleton.isTracked()) {
-      KJoint[] joints = skeleton.getJoints();
-
-      color col  = skeleton.getIndexColor();
-      fill(col);
-      stroke(col);
-
-      drawBody(joints);
-    }
+    people[i].update(skeleton);
+    
   }
 }
 
