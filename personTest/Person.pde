@@ -162,6 +162,36 @@ class Joint {
     println("dunno... resetting joint after timeout?");
   }
 
+  //void checkConsistency(PVector nextP) {
+  //  if (dist(nextP.x, nextP.y, position.x, position.y) < 40) {
+  //    consistent = true;
+  //    lastConsistent = millis();
+  //  }
+  //  else if (dist(nextP.x, nextP.y, lastPosition.x, lastPosition.y) > 30) {
+  //    lastPosition = nextP;
+  //    consistent = false;
+  //  } else {
+  //    consistent = false;
+  //    if (millis() - lastConsistent > timeOut) {
+  //    }
+  //  }
+  //}
+
+  void checkEdges() {
+
+    if (position.x > width) {
+      position.x = width;
+      velocity.x *= -1;
+    } else if (position.x < 0) {
+      velocity.x *= -1;
+      position.x = 0;
+    }
+
+    if (position.y > height) {
+      velocity.y *= -1;
+      position.y = height;
+    }
+  }
 }
 
 class Boundary {

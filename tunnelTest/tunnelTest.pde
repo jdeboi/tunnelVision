@@ -43,7 +43,7 @@ void setup() {
   
   people = new Person[6];
   for (int i = 0; i < people.length; i++) {
-    people[i] = new Person(i);
+    people[i] = new Person( 0, 0, i*width/4, height, i);
   }
 }
 
@@ -57,13 +57,14 @@ void draw() {
   //image(kinect.getDepthMaskImage(), 0, 0);
 
 
-  drawSkeleton();
+  updatePeople();
+  displayPeople();
   fill(255, 0, 0);
   text(frameRate, 50, 50);
 }
 
 
-void drawSkeleton() {
+void updatePeople() {
   //get the skeletons as an Arraylist of KSkeletons
   ArrayList<KSkeleton> skeletonArray =  kinect.getSkeletonDepthMap();
 
@@ -73,6 +74,12 @@ void drawSkeleton() {
     //if the skeleton is being tracked compute the skleton joints
     people[i].update(skeleton);
     
+  }
+}
+
+void displayPeople() {
+  for (Person p: people) {
+    p.display(60, 3);
   }
 }
 
